@@ -1,17 +1,32 @@
+#!/bin/bash
 # ---------------------------------------------- #
 # A simple bash-script to automate compiling and #
 # running a fortran script                       #
 # ---------------------------------------------- #
 
 # check if command line is empty
-if [ -z "$1"]
+if [[ -z "$1" ]]
 then
-    echo "Input Fortran script name (without .f95):"
+    echo -n "Input FORTRAN script name >> "
     read script_name
 else
     script_name=$1
 fi
 
-# compile and run script
-f95 -free "${script_name}.f95" -o "${script_name}.out"
-${script_name}.out
+# check if input contains file extension 
+IFS='.'                             # dot (.) is set as delimiter
+read -ra INPUT <<< ${script_name}   # str is read into an array as tokens separated by IFS
+IFS=' '
+
+# if input does not contain a file extension, assume it is .dat
+if [[ ${#INPUT[@]} == 1 ]]
+then
+    f95 -free "${INPUT[0]}.f90" -o "${INPUT[0]}.out"
+    ${INPUT[0]}.out
+elif [[ ${#INPUT[@]} == 2 ]]
+then
+    f95 -free "${INPUT[0]}.${INPUT[1]}" -o "${INPUT[0]}.out"
+    ${INPUT[0]}.out
+else
+    echo "Bad input. Too many file extensions."
+fi
