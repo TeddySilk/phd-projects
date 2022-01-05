@@ -18,14 +18,14 @@ IFS='.'                             # dot (.) is set as delimiter
 read -ra INPUT <<< ${script_name}   # str is read into an array as tokens separated by IFS
 IFS=' '
 
-# if input does not contain a file extension, assume it is .dat
-if [[ ${#INPUT[@]} == 1 ]]
+# if input does not contain a file extension, check if it is .f90
+if [ ${#INPUT[@]} == 1 ] && [ "${INPUT[0]}.f90" == "${INPUT[0]}.*"]
 then
     f95 -free "${INPUT[0]}.f90" -o "${INPUT[0]}.out"
     ${INPUT[0]}.out
 elif [[ ${#INPUT[@]} == 2 ]]
 then
-    f95 -free "${INPUT[0]}.${INPUT[1]}" -o "${INPUT[0]}.out"
+    f95 -free "${INPUT[0]}.${INPUT[-1]}" -o "${INPUT[0]}.out"
     ${INPUT[0]}.out
 else
     echo "Bad input. Too many file extensions."
