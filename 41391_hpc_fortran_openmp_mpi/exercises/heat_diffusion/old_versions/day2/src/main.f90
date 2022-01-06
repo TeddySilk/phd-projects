@@ -9,7 +9,7 @@ PROGRAM main
    USE m_copy        ! used to copy new field data to the old field array
 
    ! define all parameters, variables, and arrays
-   IMPLICIT NONE
+   IMPLICIT none
 
    ! filename
    CHARACTER(LEN = 24) :: output_name = 'Tfield'

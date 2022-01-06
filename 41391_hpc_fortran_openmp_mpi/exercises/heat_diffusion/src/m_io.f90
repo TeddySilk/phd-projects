@@ -1,12 +1,20 @@
-MODULE m_out
-   USE m_constants
+MODULE m_io
+
+   ! ------------------------------------------------- !
+   ! MODULES                                           !
+   ! ------------------------------------------------- !
+   USE m_global
+
+   IMPLICIT none
 
 CONTAINS
-   SUBROUTINE extract(field, output_name, timestep)
 
-      IMPLICIT none
+   ! ------------------------------------------------- !
+   ! SUBROUTINE EXTRACT_FIELD                                    !
+   ! ------------------------------------------------- !
+   SUBROUTINE extract_field(field, output_name, timestep)
 
-      CHARACTER(LEN = 24), INTENT(IN) :: output_name
+      CHARACTER(LEN = *), INTENT(IN) :: output_name
       REAL, DIMENSION(:,:), INTENT(IN) :: field
       INTEGER, OPTIONAL :: timestep
 
@@ -36,5 +44,7 @@ CONTAINS
          CLOSE(10)
       ENDIF
 
-   END SUBROUTINE extract
-END MODULE m_out
+   END SUBROUTINE extract_field
+
+END MODULE m_io
+
