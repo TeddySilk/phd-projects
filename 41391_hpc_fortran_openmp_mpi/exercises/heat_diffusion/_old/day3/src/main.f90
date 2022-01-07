@@ -1,9 +1,9 @@
 PROGRAM main
    ! ------------------------------------------------- !
    !  Filename : heat_diffusion_2d                     !
-   !  Version  : 0.4                                   !
+   !  Version  : 0.3                                   !
    !  Author   : Kristian Ebstrup Jacobsen             !
-   !  Created  : January 7, 2022                       !
+   !  Created  : January 6, 2022                       !
    ! ------------------------------------------------- !
 
    ! ------------------------------------------------- !
