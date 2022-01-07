@@ -9,11 +9,10 @@ PROGRAM main
    ! ------------------------------------------------- !
    ! MODULES                                           !
    ! ------------------------------------------------- !
-   USE m_global         ! contains global-scoped parameters
-   USE m_arrays         ! contains array manipulation functions
-   USE m_io             ! contains input / output functions
-   USE m_heat_diffusion ! contains heat diffusion time simulation and field initialization
-
+   USE m_global                     ! contains global-scoped parameters
+   USE m_arrays, ONLY : alloc       ! contains array manipulation functions
+   USE m_io, ONLY : extract_field   ! contains input / output functions
+   USE m_heat_diffusion             ! contains heat diffusion time simulation and field initialization
 
    ! ------------------------------------------------- !
    ! INITIALIZATION                                    !
@@ -28,8 +27,6 @@ PROGRAM main
 
    ! allocate memory to the global field
    CALL alloc(tfield, Nx, Ny, info)
-
-   print*, info
 
    ! initialize the temperature field according to BC
    CALL init_tfield(tfield, initial_temperature = 0.0)

@@ -5,7 +5,7 @@ MODULE m_io
    ! ------------------------------------------------- !
    USE m_global
 
-   IMPLICIT none
+   IMPLICIT NONE
 
    ! ------------------------------------------------- !
    ! OVERLOADING                                       !
@@ -92,6 +92,37 @@ CONTAINS
       ENDIF
 
    END SUBROUTINE extract_field_double
+
+   ! ------------------------------------------------- !
+   ! SUBROUTINE DIAGNOSTICS                            !
+   ! ------------------------------------------------- !
+   SUBROUTINE diagnostics(field, time, funit, fname)
+
+      ! input variables
+      REAL, DIMENSION(:, :), INTENT(IN)   :: field
+      REAL, INTENT(IN)                    :: time
+      INTEGER, INTENT(IN)                 :: funit
+      CHARACTER(LEN = *), INTENT(IN)      :: fname
+
+      ! local variables
+      REAL    :: min_val
+      LOGICAL :: isopen
+      
+      ! check if file already exists
+      INQUIRE(UNIT=funit, OPENED=isopen)
+      IF (isopen) THEN
+         OPEN(funit, FILE="res/"//TRIM(fname)//".dat", STATUS="replace", ACTION="write")
+      ELSE
+         OPEN(funit, FILE="res/"//TRIM(fname)//".dat", POSITION="append", ACTION="write")
+      END IF
+         
+      min_val = MINVAL(field)
+
+      print *, "(t = ", time, ") minimum temperature:", min_val
+      WRITE(funit, '(3E12.4)') time, min_val
+      CLOSE(funit)
+
+   END SUBROUTINE diagnostics
 
 END MODULE m_io
 

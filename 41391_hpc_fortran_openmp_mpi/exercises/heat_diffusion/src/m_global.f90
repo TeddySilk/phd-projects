@@ -9,11 +9,14 @@ MODULE m_global
    INTEGER, PARAMETER   :: Lx = 1, Ly = 1                  ! box dimensions (Lx: length in x-dir, Ly: length in y-dir)
    INTEGER, PARAMETER   :: D = 1                           ! D: diffusion constant
    INTEGER, PARAMETER   :: nsteps = 200                    ! nsteps: amount of time steps made
+   INTEGER, PARAMETER   :: diagfreq = 10                   ! diagfreq: amount of time steps made per diagnostic print-out
 
    ! ------------------------------------------------- !
    ! DATA EXTRACT PARAMETERS                           !
    ! ------------------------------------------------- !
-   CHARACTER(LEN = 12), PARAMETER :: output_file = 'Tfield'
+   CHARACTER(LEN = 12), PARAMETER   :: output_file = 'Tfield'
+   CHARACTER(LEN = 4), PARAMETER    :: diagnostic_file = 'diag'
+   INTEGER, PARAMETER               :: diagnostic_file_unit = 20
 
    ! ------------------------------------------------- !
    ! DEPENDENT PARAMETERS                              !
