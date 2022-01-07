@@ -13,8 +13,13 @@ MODULE m_arrays
       MODULE PROCEDURE copy_arrays_single, copy_arrays_double
    END INTERFACE
 
-   
+   INTERFACE swap
+      MODULE PROCEDURE swap_single, swap_double
+   END INTERFACE
+
+
 CONTAINS
+
 
    ! ------------------------------------------------- !
    ! SUBROUTINE: ALLOC                                 !
@@ -34,6 +39,7 @@ CONTAINS
 
       IF (.NOT.ALLOCATED(c)) THEN
          ALLOCATE(c(n, m), STAT=info)
+         print*, info
       ELSE
          IF (s(1).NE.n.OR.s(2).NE.m) THEN
             ALLOCATE(w(s(1), s(2)), STAT=info)
@@ -49,7 +55,7 @@ CONTAINS
 
    SUBROUTINE alloc_double(c, n, m, info)
 
-       ! input variables
+      ! input variables
       DOUBLE PRECISION, DIMENSION(:, :), ALLOCATABLE     :: c
       INTEGER, INTENT(IN)                                :: n, m
       INTEGER, INTENT(INOUT)                             :: info
@@ -75,9 +81,10 @@ CONTAINS
 
    END SUBROUTINE alloc_double
 
+
    ! ------------------------------------------------- !
    ! SUBROUTINE: COPY_ARRAYS                           !
-   ! ------------------------------------------------- !   
+   ! ------------------------------------------------- !
    SUBROUTINE copy_arrays_single(a, b)
 
       ! copies content of array a into array b
@@ -113,7 +120,7 @@ CONTAINS
                b(i, j) = a(i, j)
             ENDDO
          ENDDO
-         ELSEIF (asize(1).GT.bsize(1).AND.asize(2).GT.bsize(2)) THEN
+      ELSEIF (asize(1).GT.bsize(1).AND.asize(2).GT.bsize(2)) THEN
          DO j = 1, bsize(2)
             DO i = 1, bsize(1)
                b(i, j) = a(i, j)
@@ -158,7 +165,7 @@ CONTAINS
                b(i, j) = a(i, j)
             ENDDO
          ENDDO
-         ELSEIF (asize(1).GT.bsize(1).AND.asize(2).GT.bsize(2)) THEN
+      ELSEIF (asize(1).GT.bsize(1).AND.asize(2).GT.bsize(2)) THEN
          DO j = 1, bsize(2)
             DO i = 1, bsize(1)
                b(i, j) = a(i, j)
@@ -167,5 +174,42 @@ CONTAINS
       ENDIF
 
    END SUBROUTINE copy_arrays_double
+
+
+   ! ------------------------------------------------- !
+   ! SUBROUTINE: SWAP                                  !
+   ! ------------------------------------------------- !
+   ELEMENTAL SUBROUTINE swap_single(a, b)
+
+      ! swaps content of a with content of b
+
+      ! input variables
+      REAL, INTENT(INOUT)  :: a, b
+
+      ! local variables
+      REAL                 :: w
+
+      w = a
+      a = b
+      b = w
+
+   END SUBROUTINE swap_single
+
+   ELEMENTAL SUBROUTINE swap_double(a, b)
+
+      ! swaps content of a with content of b
+
+      ! input variables
+      DOUBLE PRECISION, INTENT(INOUT)  :: a, b
+
+      ! local variables
+      DOUBLE PRECISION                 :: w
+
+      w = a
+      a = b
+      b = w
+
+   END SUBROUTINE swap_double
+
 
 END MODULE m_arrays

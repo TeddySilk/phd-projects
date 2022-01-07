@@ -5,6 +5,7 @@ MODULE m_heat_diffusion
    ! ------------------------------------------------- !
    USE m_global
    USE m_arrays
+   USE m_io
 
    IMPLICIT NONE
 
@@ -126,8 +127,10 @@ CONTAINS
       INTEGER, DIMENSION(2)               :: s
       INTEGER                             :: i, j, istep, info
 
+      ! generate work array w
       s = SHAPE(tfield)
       CALL alloc(w, s(1), s(2), info)
+      CALL copy_arrays(tfield, w)
 
       ! perform time-stepping
       DO istep = 1, nsteps
@@ -142,10 +145,11 @@ CONTAINS
          ENDDO
 
          ! copy temporary work array w (time-advanced) into tfield (old)
-         CALL copy_arrays(w, tfield)
+         !CALL copy_arrays(w, tfield)
+         CALL swap(w, tfield)
 
          IF (verbose.EQ.1) THEN
-            CALL extract_field(tfield, output_name, istep)
+            CALL extract_field(tfield, output_file, istep)
          ENDIF
 
       ENDDO
@@ -183,7 +187,7 @@ CONTAINS
          CALL copy_arrays(w, tfield)
 
          IF (verbose.EQ.1) THEN
-            CALL extract_field(tfield, output_name, istep)
+            CALL extract_field(tfield, output_file, istep)
          ENDIF
 
       ENDDO
