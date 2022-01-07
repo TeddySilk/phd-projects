@@ -39,7 +39,6 @@ CONTAINS
 
       IF (.NOT.ALLOCATED(c)) THEN
          ALLOCATE(c(n, m), STAT=info)
-         print*, info
       ELSE
          IF (s(1).NE.n.OR.s(2).NE.m) THEN
             ALLOCATE(w(s(1), s(2)), STAT=info)
