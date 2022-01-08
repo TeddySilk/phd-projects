@@ -1,21 +1,20 @@
-MODULE m_heat_diffusion
+MODULE m_simulate_diffusion
 
    ! ------------------------------------------------- !
    ! MODULES                                           !
    ! ------------------------------------------------- !
    USE m_global
-   USE m_arrays, ONLY : alloc, copy_arrays
-   USE m_io
+   USE m_alloc
+   USE m_copy_arrays
+   USE m_extract_field
+   USE m_extract_binary
+   USE m_diagnostics
 
    IMPLICIT NONE
 
    ! ------------------------------------------------- !
    ! OVERLOADING                                       !
    ! ------------------------------------------------- !
-   INTERFACE init_tfield
-      MODULE PROCEDURE init_tfield_single, init_tfield_double
-   END INTERFACE
-
    INTERFACE simulate_diffusion
       MODULE PROCEDURE simulate_diffusion_single, simulate_diffusion_double
    END INTERFACE
@@ -23,104 +22,16 @@ MODULE m_heat_diffusion
 
 CONTAINS
 
-
-   ! ------------------------------------------------- !
-   ! SUBROUTINE: INIT_TFIELD                           !
-   ! ------------------------------------------------- !
-   SUBROUTINE init_tfield_single(tfield, initial_temperature)
-
-      ! input variables
-      REAL, DIMENSION(:,:), INTENT(INOUT) :: tfield
-
-      ! local variables
-      INTEGER, DIMENSION(2)   :: NxNy
-      INTEGER                 :: i, j
-
-      ! optional variables
-      REAL, OPTIONAL                :: initial_temperature
-
-      NxNy = SHAPE(tfield)
-
-      ! apply Dirilect boundary condition
-      DO i = 1, NxNy(1)
-         tfield(i, 1)         = 1.0
-         tfield(i, NxNy(2))   = 1.0
-      ENDDO
-
-      DO j = 1, NxNy(2)
-         tfield(1, j)         = 1.0
-         tfield(NxNy(1), j)   = 1.0
-      ENDDO
-
-      ! initialize field to T = 0, unless other value given
-      IF (.NOT.PRESENT(initial_temperature)) THEN
-         DO j = 2, NxNy(2) - 1
-            DO i = 2, NxNy(1) - 1
-               tfield(i, j)       = 0.0
-            ENDDO
-         ENDDO
-      ELSE
-         DO j = 2, NxNy(2) - 1
-            DO i = 2, NxNy(1) - 1
-               tfield(i, j)       = initial_temperature
-            ENDDO
-         ENDDO
-      ENDIF
-
-   END SUBROUTINE init_tfield_single
-
-   SUBROUTINE init_tfield_double(tfield, initial_temperature)
-
-      ! input variables
-      DOUBLE PRECISION, DIMENSION(:,:), INTENT(INOUT) :: tfield
-
-      ! local variables
-      INTEGER, DIMENSION(2)   :: NxNy
-      INTEGER                 :: i, j
-
-      ! optional variables
-      DOUBLE PRECISION, OPTIONAL                :: initial_temperature
-
-      NxNy = SHAPE(tfield)
-
-      ! apply Dirilect boundary condition
-      DO i = 1, NxNy(1)
-         tfield(i, 1)         = 1.0
-         tfield(i, NxNy(2))   = 1.0
-      ENDDO
-
-      DO j = 1, NxNy(2)
-         tfield(1, j)         = 1.0
-         tfield(NxNy(1), j)   = 1.0
-      ENDDO
-
-      ! initialize field to T = 0, unless other value given
-      IF (.NOT.PRESENT(initial_temperature)) THEN
-         DO j = 2, NxNy(2) - 1
-            DO i = 2, NxNy(1) - 1
-               tfield(i, j)       = 0.0
-            ENDDO
-         ENDDO
-      ELSE
-         DO j = 2, NxNy(2) - 1
-            DO i = 2, NxNy(1) - 1
-               tfield(i, j)       = initial_temperature
-            ENDDO
-         ENDDO
-      ENDIF
-
-   END SUBROUTINE init_tfield_double
-
-
    ! ------------------------------------------------- !
    ! SUBROUTINE: SIMULATE_DIFFUSION                    !
    ! ------------------------------------------------- !
-   SUBROUTINE simulate_diffusion_single(tfield, nsteps, verbose)
+   SUBROUTINE simulate_diffusion_single(tfield, nsteps, input_step, verbose, binary_backup)
 
       ! input variables
       REAL, DIMENSION(:, :), INTENT(INOUT) :: tfield
-      INTEGER, INTENT(IN) :: nsteps
-      INTEGER, INTENT(IN) :: verbose
+      INTEGER, INTENT(IN) :: nsteps, verbose
+      LOGICAL, INTENT(IN) :: binary_backup
+      INTEGER, OPTIONAL   :: input_step
 
       ! local variables
       REAL, DIMENSION(:, :), ALLOCATABLE  :: w
@@ -147,25 +58,28 @@ CONTAINS
       CALL DATE_AND_TIME(date, time, zone)
       PRINT*,  date(1:4)//"-"//date(5:6)//"-"//date(7:8)//" "//&
                time(1:2)//":"//time(3:4)//":"//time(5:6)//" "//&
-               "UTC"//zone//" |", " simulationed started"
+               "UTC"//zone//" |", " simulation started"
 
       ! save initial times
       CALL CPU_TIME(cpu_t1)
       CALL SYSTEM_CLOCK(sys_count, sys_count_rate)
       time_init = sys_count * 1.0 / sys_count_rate
 
-      ! prepare diagnostic file
-      CALL prepare_file(diagnostic_file_unit, diagnostic_file)
-
       ! perform time-stepping
-      DO istep = 1, nsteps
+      IF (.NOT.PRESENT(input_step)) THEN
+         input_step = 0
+      ENDIF
 
+      DO istep = input_step + 1, input_step + nsteps
+
+         ! compute time-advanced field
          ! compute time-advanced field
          DO j = 2, Ny - 1
             DO i = 2, Nx - 1
-               w(i, j) = tfield(i, j) &
-                  + dt * (tfield(i + 1, j) - 2 * tfield(i, j) + tfield(i - 1, j)) * rdx2 &
-                  + dt * (tfield(i, j + 1) - 2 * tfield(i, j) + tfield(i, j - 1)) * rdy2
+               w(i, j) = tfield(i, j) + dt * diff_const *(&
+                    (tfield(i + 1, j) - 2 * tfield(i, j) + tfield(i - 1, j)) * rdx2 &
+                  + (tfield(i, j + 1) - 2 * tfield(i, j) + tfield(i, j - 1)) * rdy2 &
+               )
             ENDDO
          ENDDO
 
@@ -178,7 +92,11 @@ CONTAINS
          ENDIF
 
          IF (MOD(istep, diagfreq).EQ.0) THEN
-            CALL diagnostics(tfield, REAL(istep) * dt, diagnostic_file_unit, diagnostic_file)
+            CALL diagnostics(tfield, REAL(istep) * dt, diagnostic_unit, diagnostic_file)
+         ENDIF
+
+         IF (MOD(istep, binfreq).EQ.0.AND.binary_backup) THEN
+            CALL extract_binary(tfield, binary_file, istep)
          ENDIF
 
       ENDDO
@@ -191,7 +109,7 @@ CONTAINS
       CALL DATE_AND_TIME(date, time, zone)
       PRINT*,  date(1:4)//"-"//date(5:6)//"-"//date(7:8)//" "//&
                time(1:2)//":"//time(3:4)//":"//time(5:6)//" "//&
-               "UTC"//zone//" |", " simulationed ended"
+               "UTC"//zone//" |", " simulation ended"
       
       PRINT*, "elapsed wall clock time:", time_end - time_init
       PRINT*, "elapsed cpu time       :", cpu_t2 - cpu_t1
@@ -200,12 +118,14 @@ CONTAINS
 
    END SUBROUTINE simulate_diffusion_single
 
-   SUBROUTINE simulate_diffusion_double(tfield, nsteps, verbose)
+   SUBROUTINE simulate_diffusion_double(tfield, nsteps, input_step, verbose, binary_backup)
 
       ! input variables
       DOUBLE PRECISION, DIMENSION(:, :), INTENT(INOUT) :: tfield
       INTEGER, INTENT(IN) :: nsteps
       INTEGER, INTENT(IN) :: verbose
+      LOGICAL, INTENT(IN) :: binary_backup
+      INTEGER, OPTIONAL   :: input_step
 
       ! local variables
       DOUBLE PRECISION, DIMENSION(:, :), ALLOCATABLE  :: w
@@ -232,7 +152,7 @@ CONTAINS
       CALL DATE_AND_TIME(date, time, zone)
       PRINT*,  date(1:4)//"-"//date(5:6)//"-"//date(7:8)//" "//&
                time(1:2)//":"//time(3:4)//":"//time(5:6)//" "//&
-               "UTC"//zone//" |", " simulationed started"
+               "UTC"//zone//" |", " simulation started"
 
       ! save initial times
       CALL CPU_TIME(cpu_t1)
@@ -240,14 +160,20 @@ CONTAINS
       time_init = sys_count * 1.0 / sys_count_rate
 
       ! perform time-stepping
-      DO istep = 1, nsteps
+      IF (.NOT.PRESENT(input_step)) THEN
+         input_step = 0
+      ENDIF
 
+      DO istep = input_step + 1, input_step + nsteps 
+
+         ! compute time-advanced field
          ! compute time-advanced field
          DO j = 2, Ny - 1
             DO i = 2, Nx - 1
-               w(i, j) = tfield(i, j) &
-                  + dt * (tfield(i + 1, j) - 2 * tfield(i, j) + tfield(i - 1, j)) * rdx2 &
-                  + dt * (tfield(i, j + 1) - 2 * tfield(i, j) + tfield(i, j - 1)) * rdy2
+               w(i, j) = tfield(i, j) + dt * diff_const *(&
+                    (tfield(i + 1, j) - 2 * tfield(i, j) + tfield(i - 1, j)) * rdx2 &
+                  + (tfield(i, j + 1) - 2 * tfield(i, j) + tfield(i, j - 1)) * rdy2 &
+               )
             ENDDO
          ENDDO
 
@@ -257,6 +183,14 @@ CONTAINS
 
          IF (verbose.EQ.1) THEN
             CALL extract_field(tfield, output_file, istep)
+         ENDIF
+
+         IF (MOD(istep, diagfreq).EQ.0) THEN
+            CALL diagnostics(tfield, REAL(istep) * dt, diagnostic_unit, diagnostic_file)
+         ENDIF
+
+         IF (MOD(istep, binfreq).EQ.0.AND.binary_backup) THEN
+            CALL extract_binary(tfield, binary_file, istep)
          ENDIF
 
       ENDDO
@@ -269,7 +203,7 @@ CONTAINS
       CALL DATE_AND_TIME(date, time, zone)
       PRINT*,  date(1:4)//"-"//date(5:6)//"-"//date(7:8)//" "//&
                time(1:2)//":"//time(3:4)//":"//time(5:6)//" "//&
-               "UTC"//zone//" |", " simulationed ended"
+               "UTC"//zone//" |", " simulation ended"
       
       PRINT*, "elapsed wall clock time:", time_end - time_init
       PRINT*, "elapsed cpu time       :", cpu_t2 - cpu_t1
@@ -278,4 +212,4 @@ CONTAINS
 
    END SUBROUTINE simulate_diffusion_double
 
-END MODULE m_heat_diffusion
+END MODULE m_simulate_diffusion
