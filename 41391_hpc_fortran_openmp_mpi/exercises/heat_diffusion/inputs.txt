@@ -4,6 +4,7 @@
  LX=1          ,
  LY=1          ,
  DIFF_CONST=1          ,
+ DT=  1.00000000    ,
  NSTEPS=200        ,
  DIAGFREQ=10         ,
  BINFREQ=100        ,

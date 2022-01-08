@@ -34,7 +34,15 @@ PROGRAM main
    PRINT "(A)"
 
    ! read input file
-   CALL read_input(input_file)
+   CALL read_input(input_file, info)
+   IF (info.EQ.1) THEN
+      PRINT "(A)", TRIM("Input file detected.")
+   ELSE
+      PRINT "(A)", TRIM("No input file detected. Generating default input file.")
+      PRINT "(A)", TRIM("Check input file, and re-run the executable.")
+      PRINT*, "# ___________ PROGRAM EXITED ___________ #"
+      STOP
+   ENDIF
 
    ! allocate memory to the global field
    CALL alloc(tfield, Nx, Ny, info)
@@ -49,16 +57,24 @@ PROGRAM main
    ! continue from that field.
    nargc = iargc()
    IF (nargc.GE.1) THEN
+
+      ! get first argument (file-path)
       CALL getarg(1, arg_string)
       INQUIRE(FILE=arg_string, EXIST=arg_exists)
+
+      ! check if the file exists
       IF (arg_exists) THEN
          PRINT "(A)", TRIM("CONTINUING FROM GIVEN FIELD INPUT:")
          i = INDEX(arg_string, "@")
          cfield = arg_string
+
+         ! get second argument (steps)
          IF (nargc.GE.2) THEN
             CALL getarg(2, cstep)
             READ(cstep, *) step
          ENDIF
+
+         ! read binary field file
          PRINT "(A, A)", TRIM("    NAME: "), TRIM(cfield)
          PRINT "(A, I8)", TRIM("    STEP: "), step
          OPEN(80, FILE=TRIM(arg_string), FORM="UNFORMATTED")
@@ -68,12 +84,16 @@ PROGRAM main
          ELSE
             PRINT "(A, I8)", TRIM("    IMPORT FAILED. ERROR CODE: "), info
          ENDIF
+
+      ! if the file doens't exist, exit the program and complain
       ELSE
-         PRINT "(A)", TRIM("GIVEN FIELD INPUT IS INVALID!")
+         PRINT "(A)", TRIM("GIVEN FIELD PATH IS INVALID!")
          PRINT "(A)"
          PRINT*, "# ___________ PROGRAM EXITED ___________ #"
          STOP
+
       ENDIF
+
    ENDIF
 
    ! ------------------------------------------------- !
