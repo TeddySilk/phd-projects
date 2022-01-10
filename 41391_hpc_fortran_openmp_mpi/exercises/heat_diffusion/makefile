@@ -72,24 +72,34 @@ OBJS =\
 #----------------------------------------------------------------------
 ${OBJ}/main.o: ${SRC}/main.f90 ${SRC}/m_global.f90 ${SRC}/m_alloc.f90 ${SRC}/m_extract_binary.f90 ${SRC}/m_extract_field.f90 ${SRC}/m_init_tfield.f90 ${SRC}/m_simulate_diffusion.f90 ${SRC}/m_read_input.f90
 	${F77} ${FFLAGS} -c $< -o $@
+	
 ${OBJ}/m_simulate_diffusion.o: ${SRC}/m_simulate_diffusion.f90 ${SRC}/m_global.f90 ${SRC}/m_alloc.f90 ${SRC}/m_copy_arrays.f90 ${SRC}/m_swap.f90 ${SRC}/m_diagnostics.f90 ${SRC}/m_extract_field.f90 ${SRC}/m_extract_binary.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_extract_field.o: ${SRC}/m_extract_field.f90 ${SRC}/m_global.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_extract_binary.o: ${SRC}/m_extract_binary.f90 ${SRC}/m_global.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_init_tfield.o: ${SRC}/m_init_tfield.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_diagnostics.o: ${SRC}/m_diagnostics.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_global.o: ${SRC}/m_global.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_alloc.o: ${SRC}/m_alloc.f90 ${SRC}/m_copy_arrays.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_copy_arrays.o: ${SRC}/m_copy_arrays.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_swap.o: ${SRC}/m_swap.f90
 	${F77} ${FFLAGS} -c $< -o $@
+
 ${OBJ}/m_read_input.o: ${SRC}/m_read_input.f90
 	${F77} ${FFLAGS} -c $< -o $@
 

@@ -19,7 +19,6 @@ CONTAINS
 
       ! local variables
       LOGICAL            :: input_exists
-      
 
       ! list of inputs
       NAMELIST /GLOBAL/ Nx, Ny, Lx, Ly, diff_const, dt, nsteps, diagfreq, binfreq, Tinit, Tboundary,&

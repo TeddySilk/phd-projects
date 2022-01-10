@@ -68,21 +68,18 @@ PROGRAM main
          i = INDEX(arg_string, "@")
          cfield = arg_string
 
-         ! get second argument (steps)
-         IF (nargc.GE.2) THEN
-            CALL getarg(2, cstep)
-            READ(cstep, *) step
-         ENDIF
-
          ! read binary field file
          PRINT "(A, A)", TRIM("    NAME: "), TRIM(cfield)
-         PRINT "(A, I8)", TRIM("    STEP: "), step
          OPEN(80, FILE=TRIM(arg_string), FORM="UNFORMATTED")
-         READ(80, IOSTAT=info) tfield
+         READ(80, IOSTAT=info) step, tfield
+         PRINT "(A, I8)", TRIM("    STEP: "), step
          IF (info.EQ.0) THEN
             PRINT "(A)", TRIM("    IMPORT SUCCESSFUL")
          ELSE
             PRINT "(A, I8)", TRIM("    IMPORT FAILED. ERROR CODE: "), info
+            PRINT "(A)"
+            PRINT*, "# ___________ PROGRAM EXITED ___________ #"
+            STOP
          ENDIF
 
       ! if the file doens't exist, exit the program and complain

@@ -31,19 +31,15 @@ CONTAINS
 
       ! ----------------------------------------------------- !
 
-      IF (PRESENT(timestep)) THEN
-         WRITE(string, '(A,A,A,(I6.6),A)') './res/', trim(output_name), '@', timestep, '.bin'
-         print *, "Saving binary field data to file: ", string
-         OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
-         WRITE(10) field
-         CLOSE(10)
-      ELSE
-         WRITE(string, '(A,A,A)') './res/', trim(output_name), '.bin'
-         print *, "Saving binary field data to file: ", string
-         OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
-         WRITE(10) field
-         CLOSE(10)
+      IF (.NOT.PRESENT(timestep)) THEN
+         timestep = 0
       ENDIF
+
+      WRITE(string, '(A,A,A,(I6.6),A)') './res/', trim(output_name), '@', timestep, '.bin'
+      print *, "Saving binary field data to file: ", string
+      OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
+      WRITE(10) timestep, field
+      CLOSE(10)
 
       ! ----------------------------------------------------- !
 
@@ -61,19 +57,15 @@ CONTAINS
 
       ! ----------------------------------------------------- !
 
-      IF (PRESENT(timestep)) THEN
-         WRITE(string, '(A,A,A,(I6.6),A)') './res/', trim(output_name), '@', timestep, '.bin'
-         print *, "Saving binary field data to file: ", string
-         OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
-         WRITE(10) field
-         CLOSE(10)
-      ELSE
-         WRITE(string, '(A,A,A)') './res/', trim(output_name), '.bin'
-         print *, "Saving binary field data to file: ", string
-         OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
-         WRITE(10) field
-         CLOSE(10)
+      IF (.NOT.PRESENT(timestep)) THEN
+         timestep = 0
       ENDIF
+
+      WRITE(string, '(A,A,A,(I6.6),A)') './res/', trim(output_name), '@', timestep, '.bin'
+      print *, "Saving binary field data to file: ", string
+      OPEN(10, FILE = trim(string), FORM='UNFORMATTED')
+      WRITE(10) timestep, field
+      CLOSE(10)
 
       ! ----------------------------------------------------- !
 
